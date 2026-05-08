@@ -138,15 +138,16 @@ describe("parity-check — stoplist validation", () => {
   });
 
   it("fails when a required stoplist string is missing", () => {
-    // Overwrite pipeline.md without the stoplist content
-    const pipelinePath = path.join(tmp, ".codex", "rules", "pipeline.md");
-    fs.writeFileSync(pipelinePath, "# Pipeline\n\n## Tracks\n| full |\n");
+    // After B-21, stoplist content lives in pipeline-tracks.md. Mutate
+    // that file to remove the stoplist content and confirm the check bites.
+    const tracksPath = path.join(tmp, ".codex", "rules", "pipeline-tracks.md");
+    fs.writeFileSync(tracksPath, "# pipeline-tracks\n\n## Tracks\n| full |\n");
     const errors = checkStoplistContent(tmp);
     assert.ok(errors.length > 0, "should have errors when stoplist content is missing");
     assert.ok(errors.some((e) => e.includes("Safety stoplist")));
     // Restore
-    fs.writeFileSync(pipelinePath, [
-      "# Pipeline",
+    fs.writeFileSync(tracksPath, [
+      "# pipeline-tracks",
       "## Safety stoplist",
       "- Authentication",
       "- Cryptography",
@@ -156,14 +157,13 @@ describe("parity-check — stoplist validation", () => {
   });
 
   it("main() returns non-zero when stoplist string is missing", () => {
-    const pipelinePath = path.join(tmp, ".codex", "rules", "pipeline.md");
-    const original = fs.readFileSync(pipelinePath, "utf8");
-    // Remove the word "Authentication" from pipeline.md
-    fs.writeFileSync(pipelinePath, original.replace(/Authentication/g, "REMOVED"));
+    const tracksPath = path.join(tmp, ".codex", "rules", "pipeline-tracks.md");
+    const original = fs.readFileSync(tracksPath, "utf8");
+    fs.writeFileSync(tracksPath, original.replace(/Authentication/g, "REMOVED"));
     const result = main(tmp);
     assert.notEqual(result, 0, "main() should fail when stoplist content is missing");
     // Restore
-    fs.writeFileSync(pipelinePath, original);
+    fs.writeFileSync(tracksPath, original);
   });
 });
 

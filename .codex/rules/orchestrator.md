@@ -19,7 +19,8 @@ or architecture decisions on behalf of the user, PM, or Principal.
 
 Before a pipeline run:
 
-1. Read `.codex/rules/pipeline.md` and `.codex/rules/coding-principles.md`.
+1. Read all three pipeline rule files (`pipeline-tracks.md`,
+   `pipeline-core.md`, `pipeline-build.md`) and `.codex/rules/coding-principles.md`.
 2. Read `pipeline/lessons-learned.md` when present and include its relevant
    lessons in stage prompts.
 3. Check `pipeline/context.md` for unresolved `QUESTION:`, `CONCERN:`, and

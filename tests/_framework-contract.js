@@ -7,7 +7,8 @@
 // The filename does not end in `.test.js`, so `node --test tests/*.test.js`
 // won't try to run it as a suite.
 
-// Core rule files shared with the claude-dev-team sibling.
+// Core rule files shared with the claude-dev-team sibling. Both sides
+// split pipeline.md into the three pipeline-* sub-files (B-21).
 const RULES = [
   "coding-principles",
   "compaction",
@@ -15,6 +16,9 @@ const RULES = [
   "gates",
   "orchestrator",
   "pipeline",
+  "pipeline-core",
+  "pipeline-build",
+  "pipeline-tracks",
   "retrospective",
 ];
 

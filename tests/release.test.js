@@ -16,8 +16,11 @@ describe("release helper", () => {
     target = fs.mkdtempSync(path.join(os.tmpdir(), "codex-release-"));
     fs.mkdirSync(path.join(target, ".codex"), { recursive: true });
     fs.mkdirSync(path.join(target, ".codex", "rules"), { recursive: true });
-    const pipelineRuleContent = [
-      "# pipeline",
+    // After the B-21 split, stoplist content lives in pipeline-tracks.md
+    // (parity-check scans there). The other pipeline-* rule files are
+    // stubbed.
+    const tracksContent = [
+      "# pipeline-tracks",
       "## Safety stoplist",
       "- Authentication, authorization, or session handling",
       "- Cryptography, key management, or secrets rotation",
@@ -25,12 +28,10 @@ describe("release helper", () => {
       "## Tracks",
       "| full |",
     ].join("\n") + "\n";
-    // pipeline.md is written below with stoplist content; the other rules
-    // are stubbed.
-    for (const rule of RULES.filter((r) => r !== "pipeline")) {
+    for (const rule of RULES.filter((r) => r !== "pipeline-tracks")) {
       fs.writeFileSync(path.join(target, ".codex", "rules", `${rule}.md`), `# ${rule}\n`);
     }
-    fs.writeFileSync(path.join(target, ".codex", "rules", "pipeline.md"), pipelineRuleContent);
+    fs.writeFileSync(path.join(target, ".codex", "rules", "pipeline-tracks.md"), tracksContent);
     for (const skill of SKILLS) {
       fs.mkdirSync(path.join(target, ".codex", "skills", skill), { recursive: true });
       fs.writeFileSync(path.join(target, ".codex", "skills", skill, "SKILL.md"), `---\nname: ${skill}\ndescription: test\n---\n`);
