@@ -44,7 +44,7 @@ Larger refactors. Each one has bigger blast radius — sequence matters.
 
 | Order | Item | Sequencing notes |
 |---|---|---|
-| 12 | **B-17** `codex-team.js` dispatch refactor to `COMMANDS` object map | Should land BEFORE B-13 because the stoplist hook is cleaner against an object-map dispatch than an if-chain. Behaviour-preserving refactor; export `COMMANDS`. |
+| 12 | **B-17 [DONE]** `codex-team.js` dispatch refactor to `COMMANDS` object map | Refactored 32-branch if-chain to a single object map; added a `checkpoint <stage>` subcommand that wraps the existing `applyCheckpointAutoPass`. Exports `COMMANDS`. Behaviour-preserving — exit codes verified for help (0) / unknown command (1) / validate (0). |
 | 13 | **B-13** Programmatic stoplist enforcement on lighter tracks | Port `scripts/stoplist.js` from claude with the regex set unchanged. Wire into `runTrack` in `codex-team.js` to refuse `/quick` `/nano` `/config-only` `/dep-update` on match; `--force` to bypass. Add tests mirroring claude's. |
 | 14 | **B-10** Extract `tests/_framework-contract.js` shared module | Useful but not urgent. Pairs naturally after B-17 because the COMMANDS export becomes a natural item to consume. |
 | 15 | **B-21** Split `.codex/rules/pipeline.md` (589 lines) into core / build / tracks | Last because it touches the most files (every agent prompt that reads pipeline.md, the parity-check stoplist scan, the orchestrator startup instruction). The claude side did this in the same audit — lessons-learned for the codex side: write all three sub-files first, then replace `pipeline.md` with the index, then update parity-check to scan `pipeline-tracks.md`, then run the suite and patch any test fixtures that were writing the old monolithic content. |

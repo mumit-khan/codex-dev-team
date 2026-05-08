@@ -1312,51 +1312,83 @@ function usage(exitCode = 1) {
   return exitCode;
 }
 
-function main() {
-  const command = process.argv[2];
-  if (command === "help" || command === "--help" || command === "-h") return usage(0);
-  if (command === "budget") return runNodeScript("budget.js", process.argv.slice(3));
-  if (command === "visualize") return runNodeScript("visualize.js", process.argv.slice(3));
-  if (command === "status") return runNodeScript("status.js", process.argv.slice(3));
-  if (command === "next") return printNext(process.argv.slice(3));
-  if (command === "summary") return runNodeScript("summary.js");
-  if (command === "roadmap") return runNodeScript("roadmap.js", process.argv.slice(3));
-  if (command === "validate") return validate();
-  if (command === "doctor") return doctor();
-  if (command === "reset") return reset();
-  if (command === "autofold") return runAutoFold();
-  if (command === "review") return runNodeScript("approval-derivation.js");
-  if (command === "security") return runNodeScript("security-heuristic.js", process.argv.slice(3));
-  if (command === "runbook") return runNodeScript("runbook-check.js");
-  if (command === "audit") return runNodeScript("audit.js", ["full", ...process.argv.slice(3)]);
-  if (command === "audit-quick") return runNodeScript("audit.js", ["quick", ...process.argv.slice(3)]);
-  if (command === "health-check") return runNodeScript("audit.js", ["health-check", ...process.argv.slice(3)]);
-  if (command === "pipeline") return runPipeline(process.argv.slice(3).join(" "));
-  if (command === "quick") return runTrack("quick", process.argv.slice(3).join(" "));
-  if (command === "nano") return runTrack("nano", process.argv.slice(3).join(" "));
-  if (command === "config-only") return runTrack("config-only", process.argv.slice(3).join(" "));
-  if (command === "dep-update") return runTrack("dep-update", process.argv.slice(3).join(" "));
-  if (command === "hotfix") return runTrack("hotfix", process.argv.slice(3).join(" "));
-  if (command === "pipeline:scaffold") return scaffoldPipeline(process.argv.slice(3).join(" "));
-  if (command === "pipeline:new") return newPipeline(process.argv.slice(3).join(" "));
-  if (command === "pipeline-brief") {
-    const feature = process.argv.slice(3).join(" ");
+function runCheckpoint(argv) {
+  const stageName = argv[0];
+  if (!stageName) {
+    console.error("Usage: codex-team checkpoint <stage-name>");
+    console.error("  stage-name: one of requirements, design, qa");
+    return 1;
+  }
+  const result = applyCheckpointAutoPass(stageName);
+  console.log(result);
+  return 0;
+}
+
+// Single source of truth for the CLI surface. Each key is a command name;
+// each value is a handler that takes the post-command argv slice and
+// returns an exit code. Help (`help`, `--help`, `-h`) is the only command
+// with aliases — they share the same handler.
+const COMMANDS = {
+  help: () => usage(0),
+  "--help": () => usage(0),
+  "-h": () => usage(0),
+
+  // Diagnostics & state
+  status: (argv) => runNodeScript("status.js", argv),
+  next: (argv) => printNext(argv),
+  summary: () => runNodeScript("summary.js"),
+  roadmap: (argv) => runNodeScript("roadmap.js", argv),
+  validate: () => validate(),
+  doctor: () => doctor(),
+  reset: () => reset(),
+  autofold: () => runAutoFold(),
+  review: () => runNodeScript("approval-derivation.js"),
+  security: (argv) => runNodeScript("security-heuristic.js", argv),
+  runbook: () => runNodeScript("runbook-check.js"),
+  budget: (argv) => runNodeScript("budget.js", argv),
+  visualize: (argv) => runNodeScript("visualize.js", argv),
+  checkpoint: (argv) => runCheckpoint(argv),
+  lessons: (argv) => runNodeScript("lessons.js", argv),
+
+  // Audit family
+  audit: (argv) => runNodeScript("audit.js", ["full", ...argv]),
+  "audit-quick": (argv) => runNodeScript("audit.js", ["quick", ...argv]),
+  "health-check": (argv) => runNodeScript("audit.js", ["health-check", ...argv]),
+
+  // Pipeline (full + lighter tracks)
+  pipeline: (argv) => runPipeline(argv.join(" ")),
+  quick: (argv) => runTrack("quick", argv.join(" ")),
+  nano: (argv) => runTrack("nano", argv.join(" ")),
+  "config-only": (argv) => runTrack("config-only", argv.join(" ")),
+  "dep-update": (argv) => runTrack("dep-update", argv.join(" ")),
+  hotfix: (argv) => runTrack("hotfix", argv.join(" ")),
+
+  // Pipeline operations
+  "pipeline:scaffold": (argv) => scaffoldPipeline(argv.join(" ")),
+  "pipeline:new": (argv) => newPipeline(argv.join(" ")),
+  "pipeline-brief": (argv) => {
+    const feature = argv.join(" ");
     if (feature) newPipeline(feature);
     return scaffoldStage("requirements");
-  }
-  if (command === "design") return runDesign(process.argv.slice(3).join(" "));
-  if (command === "pipeline-review") return runPipelineReview();
-  if (command === "pipeline-context") return printContext();
-  if (command === "retrospective") return runRetrospective();
-  if (command === "ask-pm") return askPm(process.argv.slice(3).join(" "));
-  if (command === "principal-ruling") return principalRuling(process.argv.slice(3).join(" "));
-  if (command === "adr") return createAdr(process.argv.slice(3).join(" "));
-  if (command === "resume") return resumePipeline(process.argv[3], process.argv.slice(4).join(" "));
-  if (command === "role") return printRole(process.argv[3]);
-  if (command === "prompt") return promptForStage(process.argv[3], process.argv.slice(4).join(" "));
-  if (command === "stage") return scaffoldStage(process.argv[3]);
-  if (command === "lessons") return runNodeScript("lessons.js", process.argv.slice(3));
-  return usage();
+  },
+  design: (argv) => runDesign(argv.join(" ")),
+  "pipeline-review": () => runPipelineReview(),
+  "pipeline-context": () => printContext(),
+  retrospective: () => runRetrospective(),
+  "ask-pm": (argv) => askPm(argv.join(" ")),
+  "principal-ruling": (argv) => principalRuling(argv.join(" ")),
+  adr: (argv) => createAdr(argv.join(" ")),
+  resume: (argv) => resumePipeline(argv[0], argv.slice(1).join(" ")),
+  role: (argv) => printRole(argv[0]),
+  prompt: (argv) => promptForStage(argv[0], argv.slice(1).join(" ")),
+  stage: (argv) => scaffoldStage(argv[0]),
+};
+
+function main() {
+  const command = process.argv[2];
+  const handler = COMMANDS[command];
+  if (!handler) return usage();
+  return handler(process.argv.slice(3));
 }
 
 if (require.main === module) {
@@ -1366,6 +1398,7 @@ if (require.main === module) {
 module.exports = {
   STAGES,
   TRACKS,
+  COMMANDS,
   canonicalStageName,
   draftGateObject,
   orderedStageNamesForTrack,
