@@ -7,7 +7,28 @@ const GATES_DIR = path.join(REPO_ROOT, "pipeline", "gates");
 const SCHEMA_PATH = path.join(__dirname, "..", "schemas", "gate.schema.json");
 const SCHEMA_DIR = path.join(__dirname, "..", "schemas");
 
+// 1 MB cap on gate file size. Gates are typically <1 KB; an attacker (or
+// runaway producer) writing a gigabyte-sized "blockers" string would
+// otherwise OOM the validator. Schemas are framework-shipped and not
+// subject to the cap.
+const MAX_GATE_BYTES = 1_000_000;
+
 function readJson(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, "utf8"));
+}
+
+// Read a gate file with a size cap. Returns the parsed object on success,
+// or throws an Error tagged with `.gateOversize = true` when the file
+// exceeds MAX_GATE_BYTES so the caller can produce a clean error path.
+function readGateJson(filePath) {
+  const stat = fs.statSync(filePath);
+  if (stat.size > MAX_GATE_BYTES) {
+    const err = new Error(
+      `gate file exceeds ${MAX_GATE_BYTES} bytes (size: ${stat.size})`,
+    );
+    err.gateOversize = true;
+    throw err;
+  }
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
@@ -209,7 +230,7 @@ function printGate(gate) {
 function validateGateFile(file) {
   let gate;
   try {
-    gate = readJson(file.full);
+    gate = readGateJson(file.full);
   } catch (err) {
     console.error(`[gate-validator] invalid JSON in ${file.name}: ${sanitize(err.message)}`);
     return 1;
@@ -247,10 +268,38 @@ function main() {
   return validateGateFile(latest);
 }
 
+// Distinguish error classes so a real filesystem problem (EACCES on
+// pipeline/gates/, gates path is a regular file, etc.) halts the
+// pipeline instead of silently green-lighting it. A runtime bug inside
+// the validator itself still exits 0 with a warning, so a script-side
+// defect doesn't block every user session — the CI test suite is the
+// authoritative check for validator correctness.
+const HALT_FS_CODES = new Set([
+  "EACCES",
+  "EPERM",
+  "ENOTDIR",
+  "EISDIR",
+  "EROFS",
+]);
+
 if (require.main === module) {
   try {
     process.exit(main());
   } catch (err) {
+    const code = err && err.code;
+    if (code === "ENOENT") {
+      // Expected absence (gates dir vanished mid-run).
+      process.exit(0);
+    }
+    if (HALT_FS_CODES.has(code)) {
+      console.error(`[gate-validator] filesystem error (${code}): ${sanitize(err.message)}`);
+      console.error(
+        "[gate-validator] Fix the underlying issue (permissions, path type) before re-running.",
+      );
+      process.exit(1);
+    }
+    // Unknown / runtime error — likely a bug in this validator. Don't
+    // halt the user's session with an opaque stack trace.
     console.log(`[gate-validator] internal error: ${sanitize(err.message)}; treating as PASS`);
     process.exit(0);
   }

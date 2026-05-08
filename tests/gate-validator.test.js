@@ -241,4 +241,43 @@ describe("gate-validator", () => {
     assert.equal(result.status, 1);
     assert.match(result.stderr, /hotfix Stage 5 PASS gates require stage_4_5a_skipped=true/);
   });
+
+  // ── B-3 (filesystem error branching) and B-16 (1 MB cap) ports ─────
+
+  it("exits 1 when a gate file exceeds the 1 MB size cap", () => {
+    fs.mkdirSync(gates, { recursive: true });
+    const oversize = requirementsGate({ warnings: ["x".repeat(1_100_000)] });
+    fs.writeFileSync(path.join(gates, "stage-01.json"), JSON.stringify(oversize));
+
+    const result = run(tmp);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /exceeds 1000000 bytes/);
+  });
+
+  it("exits 1 when pipeline/gates is a regular file (ENOTDIR)", () => {
+    fs.mkdirSync(path.join(tmp, "pipeline"), { recursive: true });
+    fs.writeFileSync(path.join(tmp, "pipeline", "gates"), "not a directory");
+    const result = run(tmp);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /filesystem error \(ENOTDIR\)/);
+  });
+
+  it("exits 1 when pipeline/gates is unreadable (EACCES)", (t) => {
+    const isRoot =
+      typeof process.getuid === "function" && process.getuid() === 0;
+    if (process.platform === "win32" || isRoot) {
+      t.skip("chmod cannot deny read on this platform/user");
+      return;
+    }
+    fs.mkdirSync(gates, { recursive: true });
+    fs.chmodSync(gates, 0o000);
+    let result;
+    try {
+      result = run(tmp);
+    } finally {
+      fs.chmodSync(gates, 0o755);
+    }
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /filesystem error \(EACCES\)/);
+  });
 });

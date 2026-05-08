@@ -26,8 +26,8 @@ Real behavioural changes. Each one closes a real defensive gap.
 
 | Order | Item | Why this order |
 |---|---|---|
-| 6 | **B-3** Filesystem error branching in `gate-validator.js` | Closes the silent-PASS-on-EACCES hole. Same pattern as claude — `HALT_FS_CODES` set + branch in top-level catch. |
-| 7 | **B-16** 1 MB cap on hook file reads | Both `gate-validator.js` and `approval-derivation.js`. Defence in depth; existing tests still pass. |
+| 6 | **B-3 [DONE]** Filesystem error branching in `gate-validator.js` | Closes the silent-PASS-on-EACCES hole. Same pattern as claude — `HALT_FS_CODES` set + branch in top-level catch. |
+| 7 | **B-16 [DONE]** 1 MB cap on hook file reads | Both `gate-validator.js` and `approval-derivation.js`. Defence in depth; existing tests still pass. |
 | 8 | **B-15** Table-driven test for `security-heuristic.js` | Pin current behaviour against silent regex changes. ~50 LOC. |
 | 9 | **B-18** Adapter-contract test | Six required H2 sections per adapter; ports 1:1 from claude. |
 | 10 | **B-14** Concurrency test for `approval-derivation.js` | Two-process parallel test; validates the lock model under contention. |

@@ -46,6 +46,11 @@ const LOCK_RETRIES = 20;
 const LOCK_DELAY_MS = 30;
 const LOCK_STALE_MS = 30000; // clear locks held for > 30 s (crashed process)
 
+// 1 MB cap on review-file and gate-file reads. Both are typically <10 KB;
+// an oversized file (corruption, a prank, or an attacker with write access
+// to pipeline/) would otherwise OOM the script on every save.
+const MAX_FILE_BYTES = 1_000_000;
+
 const REVIEWER_MAP = {
   backend: "backend",
   frontend: "frontend",
@@ -193,6 +198,13 @@ function parseReview(content) {
 function readGate(gatePath, area) {
   if (fs.existsSync(gatePath)) {
     try {
+      const stat = fs.statSync(gatePath);
+      if (stat.size > MAX_FILE_BYTES) {
+        console.warn(
+          `approval derivation warning: ${gatePath} exceeds ${MAX_FILE_BYTES} bytes (size: ${stat.size}); refusing to clobber`,
+        );
+        return null;
+      }
       return JSON.parse(fs.readFileSync(gatePath, "utf8"));
     } catch {
       // Malformed gate — log and return null to signal skip.
@@ -287,6 +299,13 @@ function main() {
     const reviewer = reviewerName(full);
     if (!reviewer) continue;
     try {
+      const stat = fs.statSync(full);
+      if (stat.size > MAX_FILE_BYTES) {
+        console.warn(
+          `approval derivation warning: ${full} exceeds ${MAX_FILE_BYTES} bytes (size: ${stat.size}); skipping`,
+        );
+        continue;
+      }
       const verdicts = parseReview(fs.readFileSync(full, "utf8"));
       for (const verdict of verdicts) {
         applyVerdict({ ...verdict, reviewer });

@@ -29,9 +29,9 @@ Severity is the cost of NOT porting; effort is implementation cost.
 
 | Claude id | Item | Effort | Severity | Notes |
 |---|---|---|---|---|
-| **B-3** | Filesystem error branching in `gate-validator.js` | S | Medium | Codex `gate-validator.js` swallows errors. Add `HALT_FS_CODES` set + branch in top-level catch. Same pattern as claude. |
+| **B-3 [DONE]** | Filesystem error branching in `gate-validator.js` | S | Medium | Codex `gate-validator.js` swallows errors. Add `HALT_FS_CODES` set + branch in top-level catch. Same pattern as claude. |
 | **B-15** | Table-driven test for `security-heuristic.js` | XS | Low | Direct port; codex has the same `DEFAULT_PATTERNS` shape. |
-| **B-16** | 1 MB cap on hook file reads | S | Medium | Both `gate-validator.js` and `approval-derivation.js`. `MAX_GATE_BYTES` / `MAX_FILE_BYTES` constants + `statSync` size check before each read. |
+| **B-16 [DONE]** | 1 MB cap on hook file reads | S | Medium | Both `gate-validator.js` and `approval-derivation.js`. `MAX_GATE_BYTES` / `MAX_FILE_BYTES` constants + `statSync` size check before each read. |
 | **B-18** | Adapter-contract test (six required H2 sections per adapter) | S | Low | Codex has 4 adapters in `.codex/adapters/`. Port the test verbatim with the path swap. |
 | **B-23** | `LOG_FORMAT=json` structured-log mode | M | Low | Both hooks. One JSON event line per terminal exit (`gate_pass`/`gate_fail`/`gate_escalate`/`bypassed_escalation`/`gate_updated`). |
 
