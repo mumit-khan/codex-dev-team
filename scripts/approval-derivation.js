@@ -124,9 +124,12 @@ function acquireLock(lockPath) {
       return true;
     } catch (err) {
       if (err.code === "EEXIST") {
-        // Spin-wait before retrying.
-        const end = Date.now() + LOCK_DELAY_MS;
-        while (Date.now() < end) { /* busy wait */ }
+        // Park the thread for LOCK_DELAY_MS without burning CPU. Atomics.wait
+        // on a throwaway SharedArrayBuffer is the canonical synchronous sleep
+        // in Node — keeps acquireLock() synchronous so callers don't have to
+        // change shape, and yields cleanly to any concurrent hook that holds
+        // the lock right now.
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, LOCK_DELAY_MS);
       } else if (err.code === "EROFS" || err.code === "EACCES" || err.code === "EPERM") {
         // Read-only or no-permission filesystem — fall back to unlocked mode.
         return false;
