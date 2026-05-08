@@ -15,7 +15,7 @@ Pure ports, no behavioural surprises. Each can land independently.
 | 2 | **B-5 [DONE]** `templates/README.md` | One-line-per-template doc; copy claude's verbatim with the `.claude` → `.codex` mention swap. |
 | 3 | **B-19 [DONE]** `release.js` check `.codex/config.yml` framework.version | Trivial regex check, paired with a new test mirroring claude's pattern. |
 | 4 | **B-22 [DONE]** `Atomics.wait` lock retry | One-line replacement of the busy-spin in `scripts/approval-derivation.js`. Existing concurrency tests pass through. |
-| 5 | **B-27** Framework-level ADR for the rule↔agent bilateral coupling | Pure docs. Copy claude's ADR with `.claude` → `.codex` swap and re-date. Establishes `docs/adr/` pattern for codex. |
+| 5 | **B-27 [DONE]** Framework-level ADR for the rule↔agent bilateral coupling | Pure docs. Copy claude's ADR with `.claude` → `.codex` swap and re-date. Establishes `docs/adr/` pattern for codex. |
 
 Verification per item: `npm test`, `npm run lint`. Hook-parity check
 doesn't apply (codex has no hooks dir).
