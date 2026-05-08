@@ -20,7 +20,7 @@ Severity is the cost of NOT porting; effort is implementation cost.
 | Claude id | Item | Effort | Severity | Notes |
 |---|---|---|---|---|
 | **B-4 [DONE]** | Add `description` to every property in `schemas/*.schema.json` | XS | Low | Direct copy of the prose from claude's schemas with $id/title swapped to codex; descriptions adjusted for codex's stage numbering (no 4.5a; 5=pre-review, 6=peer review, 7=qa, 8=signoff+deploy). |
-| **B-5** | `templates/README.md` cataloguing the 11 templates | XS | Low | Direct port; codex's template set matches claude's. |
+| **B-5 [DONE]** | `templates/README.md` cataloguing the 11 templates | XS | Low | Direct port; codex's template set matches claude's. |
 | **B-19** | `release.js check` validates `.codex/config.yml` `framework.version` against `VERSION` | XS | Medium | Codex `release.js` already verifies `package.json` and `package-lock.json`; one more regex-based check. |
 | **B-22** | Replace busy-spin lock retry with `Atomics.wait` | XS | Low | One-line change in `scripts/approval-derivation.js`. Verified the busy-spin still exists at line ~129. |
 | **B-27** | Framework-level ADR for the rule↔agent bilateral coupling | XS | Low | Pure docs; copy claude's ADR with `.claude` → `.codex` swap and re-date. |
