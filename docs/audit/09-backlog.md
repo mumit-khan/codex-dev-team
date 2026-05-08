@@ -69,6 +69,7 @@ the claude audit. Worth fixing alongside but they are codex-only.
 | **CX-2** | Schemas under `schemas/*.schema.json` lack property `description` fields entirely (pre-audit gap, fixed by B-4 port). | XS | Low | Folded into B-4 port. |
 | **CX-3** | Stoplist content in `.codex/rules/pipeline.md` — when the file is split (B-21 port), parity-check needs to be updated to scan the new sub-file. | XS | Low | Folded into B-21 port. |
 | **CX-4** | Codex has `execution-profiles.md` and `roles.md` rule files that claude doesn't. Pre-existing codex-only structure; flagged here so the parity-check ignore-list is explicit. | n/a | Low | Document in README; not a fix. |
+| **CX-5 [DONE]** | `scripts/bootstrap.js` copied the entire `docs/` tree into bootstrap targets, including audit outputs. Polluted test fixtures and would have shipped framework audit findings into target projects. | XS | Medium | Surfaced when implementing B-4 — the schema test couldn't pass with my own audit's `docs/audit/` files getting copied into the test tmpdir. Made bootstrap selective (mirror the claude-dev-team pattern: only copy `parity`, `migration`, `release-notes`, `releases` subdirs + top-level files). |
 
 ## Summary
 

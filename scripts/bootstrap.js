@@ -115,7 +115,29 @@ function main() {
   copyDir(path.join(SOURCE, "scripts"), path.join(TARGET, "scripts"));
   copyDir(path.join(SOURCE, "schemas"), path.join(TARGET, "schemas"));
   copyDir(path.join(SOURCE, "templates"), path.join(TARGET, "templates"));
-  copyDir(path.join(SOURCE, "docs"), path.join(TARGET, "docs"));
+  // Copy only docs subdirectories that are framework references, not
+  // project-specific outputs. docs/audit/ is per-project (audit findings
+  // for the target project itself), so copying the framework's own audit
+  // outputs into targets pollutes their state. Mirror the claude-dev-team
+  // pattern of selective doc copy.
+  for (const docsSubdir of ["parity", "migration", "release-notes", "releases"]) {
+    const src = path.join(SOURCE, "docs", docsSubdir);
+    if (fs.existsSync(src)) {
+      copyDir(src, path.join(TARGET, "docs", docsSubdir));
+    }
+  }
+  // Top-level reference docs in docs/ root (templates, primers) get copied
+  // individually to avoid pulling in docs/audit/ or any other ad-hoc subdir.
+  if (fs.existsSync(path.join(SOURCE, "docs"))) {
+    for (const entry of fs.readdirSync(path.join(SOURCE, "docs"), { withFileTypes: true })) {
+      if (entry.isFile()) {
+        copyFileIfMissing(
+          path.join(SOURCE, "docs", entry.name),
+          path.join(TARGET, "docs", entry.name),
+        );
+      }
+    }
+  }
 
   copyFileIfMissing(path.join(SOURCE, "AGENTS.md"), path.join(TARGET, "AGENTS.md"));
   fs.mkdirSync(path.join(TARGET, "pipeline"), { recursive: true });
