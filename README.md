@@ -146,10 +146,28 @@ npm run budget -- check
 npm run visualize
 npm run lessons -- show
 npm run lessons -- promote
+npm run checkpoint -- requirements   # async-checkpoint auto-pass evaluator
 ```
 
 Set `CODEX_TEAM_TRACK=quick` (or another supported gate track) before stage or
 prompt commands to stamp that track into generated gates.
+
+**Stoplist enforcement** (parity item B-13, post-v1.2): the lighter tracks
+(`quick`, `nano`, `config-only`, `dep-update`) refuse stoplist-matching
+descriptions or diffs (auth, crypto, PII, payments, migrations, feature
+flags). Bypass a verified false positive with `--force`:
+
+```bash
+npm run quick -- "fix login redirect" --force
+```
+
+**Structured logs** (parity item B-23): both hooks (`gate-validator`,
+`approval-derivation`) emit one JSON event line per terminal exit when
+`LOG_FORMAT=json` is set:
+
+```bash
+LOG_FORMAT=json npm run review:derive
+```
 
 `npm run status` includes gate readiness, artifact presence, audit state, and
 decision-flow signals from `pipeline/context.md`, including open PM questions,

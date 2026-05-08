@@ -18,7 +18,84 @@ is the index and the rolling `[Unreleased]` pointer — it stays thin so
 
 ---
 
-## [Unreleased] — v1.2.0
+## [Unreleased] — parity audit 2026-05-07
+
+Parity-driven hardening run that brought codex into functional sync with
+the post-audit `claude-dev-team` sibling. 15 ports closed plus one
+codex-only bug (CX-5) surfaced during the work. Test count went from
+169 to 258 (+89 assertions). See `docs/audit/` for the full parity audit
+and `docs/parity/claude-dev-team-parity.md` for the closed-divergences
+ledger.
+
+### Added
+- `scripts/stoplist.js` (B-13): pre-flight regex check that refuses
+  `/quick`, `/nano`, `/config-only`, `/dep-update` on stoplist matches
+  (auth, crypto, PII, payments, migrations, feature flags). Wired into
+  `runTrack`; `--force` bypasses for false positives.
+- `tests/_framework-contract.js` (B-10): shared module exposing RULES,
+  CODEX_ONLY_RULES, SKILLS, ROLES, ADAPTERS, STAGE_NUMBERS,
+  STAGE_SCHEMAS. Three test files now consume it.
+- `tests/security-heuristic.test.js` (B-15): table-driven coverage of
+  `DEFAULT_PATTERNS` (14 positive, 9 negative, 3 edge cases).
+- `tests/adapter-contract.test.js` (B-18): five required H2 sections per
+  adapter (`Assumptions`, `Config`, `Procedure`, smoke-test,
+  `Recovery procedure`).
+- Concurrency test for `approval-derivation.js` (B-14): two parallel
+  hooks both land in the same gate without corruption.
+- `LOG_FORMAT=json` structured-log mode (B-23) on both hooks. One JSON
+  event per terminal exit (`gate_pass`, `gate_fail`, `gate_escalate`,
+  `gate_updated`).
+- `codex-team checkpoint <stage>` subcommand (B-17 + B-24 wiring) that
+  invokes the existing `applyCheckpointAutoPass` and prints its return
+  value. Auto-pass logic itself was already implemented; now has CLI.
+- `tests/stoplist.test.js` (B-13): 27 assertions covering pattern set,
+  gather flow, and CLI integration.
+- Schema-level + per-property `description` fields on every
+  `schemas/*.schema.json` (B-4).
+- `templates/README.md` cataloguing the 11 pipeline templates (B-5).
+- `docs/adr/` framework-level ADR directory with
+  `0001-pipeline-agent-bilateral-coupling.md` (B-27).
+- `.codex/rules/pipeline-tracks.md`, `pipeline-core.md`,
+  `pipeline-build.md` — the pipeline.md split (B-21).
+
+### Changed
+- `scripts/codex-team.js` dispatch refactored from a 32-branch if-chain
+  to a `COMMANDS` object map (B-17). Behaviour-preserving. Exports
+  `COMMANDS` so future tests can introspect.
+- `.codex/rules/pipeline.md` (589 lines) replaced with a thin index
+  pointing at the three new sub-files (B-21). The split was risky —
+  every reference to "see pipeline.md Stage X" was checked; the index
+  resolves them. `parity-check.js` stoplist scan and
+  `orchestrator.md` startup updated accordingly.
+- `scripts/release.js` check now also validates `.codex/config.yml`
+  `framework.version` against `VERSION` (B-19). Two new tests cover
+  drift and missing-key cases.
+- `scripts/approval-derivation.js` busy-spin lock retry replaced with
+  `Atomics.wait` (B-22). Synchronous, no CPU during contention.
+- `scripts/bootstrap.js` (CX-5): copy only specific docs subdirs
+  (`parity`, `migration`, `release-notes`, `releases`) plus top-level
+  files. Was copying the entire `docs/` tree, polluting bootstrap
+  targets with the framework's audit outputs.
+
+### Fixed
+- `scripts/gate-validator.js` filesystem error branching (B-3): `EACCES`,
+  `EPERM`, `ENOTDIR`, `EISDIR`, `EROFS` now exit 1 with a clear stderr
+  message; runtime errors still exit 0 with a warning. Was treating
+  every error as PASS.
+- 1 MB cap on hook file reads (B-16) in both `gate-validator.js` and
+  `approval-derivation.js`. Oversize input no longer OOMs the script.
+
+### Documentation
+- `docs/audit/` — parity-audit outputs (`00-parity-context.md`,
+  `09-backlog.md`, `10-roadmap.md`, `status.json`).
+- README updated with `checkpoint` subcommand, `--force` stoplist
+  bypass, and `LOG_FORMAT=json` structured-log mode.
+- `docs/parity/claude-dev-team-parity.md` updated to flip status of
+  closed parity items.
+
+---
+
+## v1.2.0 (pre-parity-audit)
 
 ### Added
 - `.codex/rules/pipeline.md` expanded to ~400 lines with full prose for

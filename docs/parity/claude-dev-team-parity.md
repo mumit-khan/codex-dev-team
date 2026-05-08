@@ -1,9 +1,52 @@
 # Claude Dev Team Parity Checklist
 
-Last updated: 2026-05-01
+Last updated: 2026-05-07 (parity-audit-driven port run; see
+`docs/audit/10-roadmap.md` for context)
 
 This checklist tracks whether `codex-dev-team` is on par with the local
 `claude-dev-team` framework.
+
+## Audit-driven ports closed (2026-05-07)
+
+The 2026-05-07 parity audit closed 15 items that brought codex back
+into functional sync with claude after claude's audit-driven hardening
+run. Items that were claude-only divergences (and now aren't) live
+here:
+
+| Topic | Pre-audit | Now (post-port) | Item |
+|---|---|---|---|
+| Stoplist enforcement | Honour-system | Programmatic in `codex-team.js`; `--force` bypass | B-13 |
+| File-size cap on hook reads | None | 1 MB cap in both hooks | B-16 |
+| `gate-validator` filesystem error branching | All errors → PASS | `EACCES`/`EPERM`/`ENOTDIR`/`EISDIR`/`EROFS` exit 1 | B-3 |
+| `LOG_FORMAT=json` structured-event mode | None | Both hooks emit JSON event per terminal exit | B-23 |
+| `pipeline.md` layout | 589-line monolith | Split into `pipeline-tracks.md` + `pipeline-core.md` + `pipeline-build.md`; index | B-21 |
+| `release.js check` config drift | VERSION + package.json + lockfile | + `.codex/config.yml` framework.version | B-19 |
+| Lock retry CPU | Busy-spin | `Atomics.wait` | B-22 |
+| Schema property descriptions | None | Every property carries a description | B-4 |
+| `templates/README.md` | None | Catalogues 11 templates with stage / authoring role / destination | B-5 |
+| Framework-level ADR dir | None | `docs/adr/0001-pipeline-agent-bilateral-coupling.md` | B-27 |
+| Concurrency test | None | Two-process parallel test pinning lock model | B-14 |
+| Security-heuristic table-driven test | None | 26 assertions covering DEFAULT_PATTERNS | B-15 |
+| Adapter-contract test | None | Five required H2 sections per adapter | B-18 |
+| `codex-team.js` dispatch | 32-branch if-chain | `COMMANDS` object map, exported | B-17 |
+| Shared test contract module | None | `tests/_framework-contract.js` consumed by 3 test files | B-10 |
+
+Claude-side items deliberately not ported (Codex CLI runtime
+divergences): B-1 (no `.codex/hooks/` mirror to byte-pin), B-2 (no
+`settings.json` permissions block), B-6 (no hooks dir for a README),
+B-7 (claude-flavoured onboarding section), B-9 (codex has no slash
+commands surface), B-20 (no `${CLAUDE_PROJECT_DIR}` shim equivalent),
+B-25 (codex-parity is symmetric with the claude side), B-26 (no
+presentation deck builder).
+
+Two scripts that codex shipped first and claude later ported FROM
+codex: `scripts/budget.js` (claude's B-11) and `scripts/visualize.js`
+(claude's B-12). Both have always been in codex.
+
+One codex-only bug surfaced during the port and fixed: `scripts/bootstrap.js`
+was copying the entire `docs/` tree into bootstrap targets, polluting
+test fixtures and shipping framework audit outputs into target
+projects. Fixed in CX-5 to mirror claude's selective doc-copy pattern.
 
 ## Summary
 
