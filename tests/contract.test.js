@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { PACKAGE_SCRIPTS } = require("../scripts/bootstrap");
 const { STAGES, TRACKS, draftGateObject, orderedStageNames } = require("../scripts/codex-team");
+const { RULES, ROLES, ADAPTERS, STAGE_NUMBERS } = require("./_framework-contract");
 
 const ROOT = path.resolve(__dirname, "..");
 
@@ -37,17 +38,7 @@ describe("framework contracts", () => {
   });
 
   it("stage schemas are present for high-value stages", () => {
-    for (const stage of [
-      "stage-01",
-      "stage-02",
-      "stage-03",
-      "stage-04",
-      "stage-05",
-      "stage-06",
-      "stage-07",
-      "stage-08",
-      "stage-09",
-    ]) {
+    for (const stage of STAGE_NUMBERS) {
       const fullPath = path.join(ROOT, "schemas", `${stage}.schema.json`);
       assert.ok(fs.existsSync(fullPath), `${stage} schema should exist`);
       const schema = JSON.parse(fs.readFileSync(fullPath, "utf8"));
@@ -132,22 +123,14 @@ describe("framework contracts", () => {
   });
 
   it("Claude rule parity docs exist", () => {
-    for (const rule of [
-      "coding-principles",
-      "compaction",
-      "escalation",
-      "gates",
-      "orchestrator",
-      "pipeline",
-      "retrospective",
-    ]) {
+    for (const rule of RULES) {
       const body = read(`.codex/rules/${rule}.md`);
       assert.match(body, /^# /, `${rule} should have a title`);
     }
   });
 
   it("role prompt briefs exist for all framework roles", () => {
-    for (const role of ["backend", "frontend", "platform", "pm", "principal", "qa", "reviewer", "security"]) {
+    for (const role of ROLES) {
       const body = read(`.codex/prompts/roles/${role}.md`);
       assert.match(body, new RegExp(`# .*Role Brief`));
       assert.match(body, /## Read First/);
@@ -159,10 +142,8 @@ describe("framework contracts", () => {
   it("deployment adapters are documented and configured", () => {
     const config = read(".codex/config.yml");
     const adaptersReadme = read(".codex/adapters/README.md");
-    const adapterNames = ["docker-compose", "kubernetes", "terraform", "custom"];
-
     assert.match(config, /adapter: docker-compose/);
-    for (const name of adapterNames) {
+    for (const name of ADAPTERS) {
       const body = read(`.codex/adapters/${name}.md`);
       assert.match(adaptersReadme, new RegExp(`\\\`${name}\\\``));
       assert.match(body, new RegExp(`# Adapter: ${name}`));

@@ -17,6 +17,7 @@ const {
   checkStageDivergenceDoc,
   checkAuditPhases,
 } = require(path.join(ROOT, "scripts", "parity-check.js"));
+const { RULES, SKILLS, ROLES } = require("./_framework-contract");
 
 // ---------------------------------------------------------------------------
 // Case 1: main() returns 0 on the actual repo
@@ -55,18 +56,12 @@ function scaffoldRepo(tmpDir) {
   // rules
   const rulesDir = path.join(tmpDir, ".codex", "rules");
   fs.mkdirSync(rulesDir, { recursive: true });
-  for (const rule of [
-    "coding-principles", "compaction", "escalation",
-    "gates", "orchestrator", "pipeline", "retrospective",
-  ]) {
+  for (const rule of RULES) {
     fs.writeFileSync(path.join(rulesDir, `${rule}.md`), `# ${rule}\n\nSafety stoplist content here.\nAuthentication checks.\nCryptography rules.\nPII handling.\n`);
   }
 
   // skills
-  for (const skill of [
-    "api-conventions", "code-conventions", "implement",
-    "pre-pr-review", "review-rubric", "security-checklist",
-  ]) {
+  for (const skill of SKILLS) {
     const skillDir = path.join(tmpDir, ".codex", "skills", skill);
     fs.mkdirSync(skillDir, { recursive: true });
     fs.writeFileSync(path.join(skillDir, "SKILL.md"), `# ${skill}\n`);
@@ -76,7 +71,7 @@ function scaffoldRepo(tmpDir) {
   const rolesDir = path.join(tmpDir, ".codex", "prompts", "roles");
   fs.mkdirSync(rolesDir, { recursive: true });
   const longContent = ["# Role\n", ...Array(65).fill("Some behavioral content.\n")].join("");
-  for (const role of ["pm", "principal", "backend", "frontend", "platform", "qa", "security", "reviewer"]) {
+  for (const role of ROLES) {
     fs.writeFileSync(path.join(rolesDir, `${role}.md`), longContent);
   }
 

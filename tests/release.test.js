@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
+const { RULES, SKILLS, ROLES } = require("./_framework-contract");
 
 const ROOT = path.resolve(__dirname, "..");
 const SCRIPT = path.join(ROOT, "scripts", "release.js");
@@ -24,25 +25,13 @@ describe("release helper", () => {
       "## Tracks",
       "| full |",
     ].join("\n") + "\n";
-    for (const rule of [
-      "coding-principles",
-      "compaction",
-      "escalation",
-      "gates",
-      "orchestrator",
-      "retrospective",
-    ]) {
+    // pipeline.md is written below with stoplist content; the other rules
+    // are stubbed.
+    for (const rule of RULES.filter((r) => r !== "pipeline")) {
       fs.writeFileSync(path.join(target, ".codex", "rules", `${rule}.md`), `# ${rule}\n`);
     }
     fs.writeFileSync(path.join(target, ".codex", "rules", "pipeline.md"), pipelineRuleContent);
-    for (const skill of [
-      "api-conventions",
-      "code-conventions",
-      "implement",
-      "pre-pr-review",
-      "review-rubric",
-      "security-checklist",
-    ]) {
+    for (const skill of SKILLS) {
       fs.mkdirSync(path.join(target, ".codex", "skills", skill), { recursive: true });
       fs.writeFileSync(path.join(target, ".codex", "skills", skill, "SKILL.md"), `---\nname: ${skill}\ndescription: test\n---\n`);
     }
@@ -50,7 +39,7 @@ describe("release helper", () => {
     const rolePromptContent = ["# Role Brief\n\n## Read First\n\n## Writes\n\n## Handoff\n\n"]
       .concat(Array(62).fill("Behavioral content line.\n")).join("");
     fs.mkdirSync(path.join(target, ".codex", "prompts", "roles"), { recursive: true });
-    for (const role of ["pm", "principal", "backend", "frontend", "platform", "qa", "security", "reviewer"]) {
+    for (const role of ROLES) {
       fs.writeFileSync(path.join(target, ".codex", "prompts", "roles", `${role}.md`), rolePromptContent);
     }
 
