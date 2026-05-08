@@ -1,0 +1,17 @@
+{
+  "started": "2026-05-07T00:00:00Z",
+  "scope": "parity sync vs claude-dev-team's audit-driven hardening run",
+  "shape": "parity-only (not a Phase 0-3 codebase audit)",
+  "current_phase": "complete",
+  "completed": "2026-05-07T00:00:00Z",
+  "outputs": [
+    "docs/audit/00-parity-context.md",
+    "docs/audit/09-backlog.md",
+    "docs/audit/10-roadmap.md"
+  ],
+  "ports_total": 15,
+  "ports_done": 0,
+  "already_at_parity": 4,
+  "deliberate_divergences": 8,
+  "claude_audit_ref": "../claude-dev-team/docs/audit/10-roadmap.md"
+}
