@@ -29,7 +29,7 @@ Real behavioural changes. Each one closes a real defensive gap.
 | 6 | **B-3 [DONE]** Filesystem error branching in `gate-validator.js` | Closes the silent-PASS-on-EACCES hole. Same pattern as claude — `HALT_FS_CODES` set + branch in top-level catch. |
 | 7 | **B-16 [DONE]** 1 MB cap on hook file reads | Both `gate-validator.js` and `approval-derivation.js`. Defence in depth; existing tests still pass. |
 | 8 | **B-15 [DONE]** Table-driven test for `security-heuristic.js` | Pin current behaviour against silent regex changes. ~50 LOC. |
-| 9 | **B-18** Adapter-contract test | Six required H2 sections per adapter; ports 1:1 from claude. |
+| 9 | **B-18 [DONE]** Adapter-contract test | Five required H2 sections per adapter (codex has no "Runbook hooks" section like claude); the test reflects codex's actual structure. |
 | 10 | **B-14** Concurrency test for `approval-derivation.js` | Two-process parallel test; validates the lock model under contention. |
 | 11 | **B-23** `LOG_FORMAT=json` structured-log mode | Both hooks. One JSON event per terminal exit. Useful when Codex CLI runs are driven by an external orchestrator that wants machine-readable signal. |
 
