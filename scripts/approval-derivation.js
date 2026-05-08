@@ -51,6 +51,21 @@ const LOCK_STALE_MS = 30000; // clear locks held for > 30 s (crashed process)
 // to pipeline/) would otherwise OOM the script on every save.
 const MAX_FILE_BYTES = 1_000_000;
 
+// Structured-log mode (audit B-23). When LOG_FORMAT=json, emit a single
+// JSON event line per gate update so external orchestrators can consume
+// hook results without parsing prose. Default off — humans see prose only.
+const LOG_JSON = process.env.LOG_FORMAT === "json";
+
+function logEvent(event, data) {
+  if (!LOG_JSON) return;
+  console.log(JSON.stringify({
+    ts: new Date().toISOString(),
+    hook: "approval-derivation",
+    event,
+    ...data,
+  }));
+}
+
 const REVIEWER_MAP = {
   backend: "backend",
   frontend: "frontend",
@@ -271,6 +286,16 @@ function applyVerdict({ area, verdict, reviewer }) {
     fs.renameSync(tmpPath, gatePath);
 
     console.log(`${reviewer} -> ${verdict} on ${area}: ${gate.status}`);
+    logEvent("gate_updated", {
+      area,
+      reviewer,
+      verdict,
+      status: gate.status,
+      approvals: gate.approvals.slice(),
+      approvals_count: gate.approvals.length,
+      required_approvals: gate.required_approvals,
+      changes_requested_count: gate.changes_requested.length,
+    });
   } finally {
     if (locked) releaseLock(lockPath);
   }

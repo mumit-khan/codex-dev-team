@@ -33,14 +33,14 @@ Severity is the cost of NOT porting; effort is implementation cost.
 | **B-15 [DONE]** | Table-driven test for `security-heuristic.js` | XS | Low | Direct port; codex has the same `DEFAULT_PATTERNS` shape. |
 | **B-16 [DONE]** | 1 MB cap on hook file reads | S | Medium | Both `gate-validator.js` and `approval-derivation.js`. `MAX_GATE_BYTES` / `MAX_FILE_BYTES` constants + `statSync` size check before each read. |
 | **B-18 [DONE]** | Adapter-contract test (five required H2 sections per adapter) | S | Low | Codex has 4 adapters in `.codex/adapters/`. Codex adapters carry 5 sections (no Runbook hooks like claude) — the test reflects codex's actual structure. |
-| **B-23** | `LOG_FORMAT=json` structured-log mode | M | Low | Both hooks. One JSON event line per terminal exit (`gate_pass`/`gate_fail`/`gate_escalate`/`bypassed_escalation`/`gate_updated`). |
+| **B-23 [DONE]** | `LOG_FORMAT=json` structured-log mode | M | Low | Both hooks. One JSON event line per terminal exit (`gate_pass`/`gate_fail`/`gate_escalate`/`gate_updated`). |
 
 ## Port — larger / structural
 
 | Claude id | Item | Effort | Severity | Notes |
 |---|---|---|---|---|
 | **B-13** | Programmatic stoplist enforcement on lighter tracks | S–M | High | Codex already has `contextHasStoplistTrigger` for checkpoint suppression. Extend it: build a `scripts/stoplist.js` (port from claude) + wire into `runTrack` in `codex-team.js` to refuse `/quick` `/nano` `/config-only` `/dep-update` on regex match, with a `--force` flag to bypass. |
-| **B-14** | Concurrency test for `approval-derivation.js` | S | Medium | Spawn two parallel processes both writing to the same area gate; assert both approvals land. ~30 LOC. |
+| **B-14 [DONE]** | Concurrency test for `approval-derivation.js` | S | Medium | Spawn two parallel processes both writing to the same area gate; assert both approvals land. ~30 LOC. |
 | **B-17** | Replace `codex-team.js` if-chain dispatch with `COMMANDS` object map; export it | S | Medium | Pairs naturally with B-13 since both touch dispatch. The CLI dispatch in `codex-team.js` is currently a long if-chain; refactor to a single map keyed by command name. Export the map. |
 | **B-21** | Split `.codex/rules/pipeline.md` (589 lines) into core / build / tracks sub-files | M | Medium | Same shape as claude's split. `pipeline.md` becomes a thin index. Update `parity-check.js` (codex side) to scan `pipeline-tracks.md` for stoplist content; update agent prompts that read pipeline.md to also load the sub-files (or trust the index pointer). |
 | **B-10** | Extract `tests/_framework-contract.js` shared module | S | Low | Centralise COMMANDS / RULES / SKILLS / etc. lists used by multiple test files. Codex's `tests/contract.test.js` and `tests/parity-check.test.js` carry duplicate inline lists today. |

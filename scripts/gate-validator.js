@@ -13,6 +13,22 @@ const SCHEMA_DIR = path.join(__dirname, "..", "schemas");
 // subject to the cap.
 const MAX_GATE_BYTES = 1_000_000;
 
+// Structured-log mode (audit B-23). When LOG_FORMAT=json, the validator
+// emits one JSON event line on stdout at its terminal exit so external
+// orchestrators (CI runners, dashboards) can consume results without
+// parsing prose. Default off — humans see prose only.
+const LOG_JSON = process.env.LOG_FORMAT === "json";
+
+function logEvent(event, data) {
+  if (!LOG_JSON) return;
+  console.log(JSON.stringify({
+    ts: new Date().toISOString(),
+    hook: "gate-validator",
+    event,
+    ...data,
+  }));
+}
+
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
@@ -207,6 +223,11 @@ function printGate(gate) {
     for (const warning of gate.warnings || []) {
       console.log(`[gate-validator] warning: ${sanitize(warning)}`);
     }
+    logEvent("gate_pass", {
+      stage: gate.stage,
+      agent: gate.agent,
+      warnings: gate.warnings || [],
+    });
     return 0;
   }
 
@@ -215,12 +236,22 @@ function printGate(gate) {
     for (const blocker of gate.blockers || []) {
       console.log(`[gate-validator] blocker: ${sanitize(blocker)}`);
     }
+    logEvent("gate_fail", {
+      stage: gate.stage,
+      agent: gate.agent,
+      blockers: gate.blockers || [],
+    });
     return 2;
   }
 
   if (gate.status === "ESCALATE") {
     console.log(`[gate-validator] ESCALATE - ${label}`);
     console.log(`[gate-validator] reason: ${sanitize(gate.escalation_reason || "see gate file")}`);
+    logEvent("gate_escalate", {
+      stage: gate.stage,
+      agent: gate.agent,
+      reason: gate.escalation_reason || null,
+    });
     return 3;
   }
 

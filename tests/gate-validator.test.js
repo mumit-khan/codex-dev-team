@@ -262,6 +262,42 @@ describe("gate-validator", () => {
     assert.match(result.stderr, /filesystem error \(ENOTDIR\)/);
   });
 
+  // ── B-23 structured-log mode port ─────────────────────────────────
+
+  it("emits one JSON event line on PASS when LOG_FORMAT=json", () => {
+    fs.mkdirSync(gates, { recursive: true });
+    fs.writeFileSync(path.join(gates, "stage-01.json"), JSON.stringify(requirementsGate()));
+    let result;
+    try {
+      const stdout = execFileSync(process.execPath, [VALIDATOR], {
+        cwd: tmp,
+        encoding: "utf8",
+        env: { ...process.env, LOG_FORMAT: "json" },
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+      result = { status: 0, stdout };
+    } catch (err) {
+      result = { status: err.status, stdout: err.stdout || "" };
+    }
+    assert.equal(result.status, 0);
+    const jsonLine = result.stdout.split("\n").find((l) => l.startsWith("{"));
+    assert.ok(jsonLine, `expected a JSON event line in stdout:\n${result.stdout}`);
+    const event = JSON.parse(jsonLine);
+    assert.equal(event.hook, "gate-validator");
+    assert.equal(event.event, "gate_pass");
+    assert.equal(event.stage, "stage-01");
+    assert.match(event.ts, /^\d{4}-\d{2}-\d{2}T/);
+  });
+
+  it("emits no JSON when LOG_FORMAT is unset", () => {
+    fs.mkdirSync(gates, { recursive: true });
+    fs.writeFileSync(path.join(gates, "stage-01.json"), JSON.stringify(requirementsGate()));
+    const result = run(tmp);
+    assert.equal(result.status, 0);
+    const jsonLines = result.stdout.split("\n").filter((l) => l.trim().startsWith("{"));
+    assert.equal(jsonLines.length, 0);
+  });
+
   it("exits 1 when pipeline/gates is unreadable (EACCES)", (t) => {
     const isRoot =
       typeof process.getuid === "function" && process.getuid() === 0;
