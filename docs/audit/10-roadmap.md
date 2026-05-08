@@ -11,7 +11,7 @@ Pure ports, no behavioural surprises. Each can land independently.
 
 | Order | Item | Why this first |
 |---|---|---|
-| 1 | **B-4** schema `description` fields | Direct copy from claude's schemas; zero behavioural impact. Improves contributor UX immediately. |
+| 1 | **B-4 [DONE]** schema `description` fields | Direct copy from claude's schemas; zero behavioural impact. Improves contributor UX immediately. |
 | 2 | **B-5** `templates/README.md` | One-line-per-template doc; copy claude's verbatim with the `.claude` → `.codex` mention swap. |
 | 3 | **B-19** `release.js` check `.codex/config.yml` framework.version | Trivial regex check, paired with a new test mirroring claude's pattern. |
 | 4 | **B-22** `Atomics.wait` lock retry | One-line replacement of the busy-spin in `scripts/approval-derivation.js`. Existing concurrency tests pass through. |

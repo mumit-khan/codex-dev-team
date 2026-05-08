@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.local/codex-dev-team/stage-05.schema.json",
   "title": "Stage 05 Pre-review Gate",
+  "description": "Stage 5 (Pre-review) gate. Authored by dev-platform after running lint, type-check, and SCA across the merged build output. Stage 6 (peer review) cannot start until this passes. The security_review_required flag is set when the heuristic in scripts/security-heuristic.js fires; downstream tooling consumes security_review_gate to find the conditional security review's verdict.",
   "type": "object",
   "required": [
     "lint_passed",
@@ -10,11 +11,26 @@
     "security_review_required"
   ],
   "properties": {
-    "lint_passed": { "type": "boolean" },
-    "tests_passed": { "type": "boolean" },
-    "dependency_review_passed": { "type": "boolean" },
-    "security_review_required": { "type": "boolean" },
-    "security_review_gate": { "type": "string" }
+    "lint_passed": {
+      "type": "boolean",
+      "description": "Project lint command exited cleanly across all areas. Failure routes the fix to the owning dev."
+    },
+    "tests_passed": {
+      "type": "boolean",
+      "description": "Unit tests in the integrated branch pass. Stage 7 (QA) re-runs the full suite with criterion mapping."
+    },
+    "dependency_review_passed": {
+      "type": "boolean",
+      "description": "SCA found no high or critical findings in new/changed dependencies."
+    },
+    "security_review_required": {
+      "type": "boolean",
+      "description": "When true, a conditional security-engineer review is mandatory before Stage 6; trigger heuristic in scripts/security-heuristic.js."
+    },
+    "security_review_gate": {
+      "type": "string",
+      "description": "Optional path or identifier of the security-review gate file when security_review_required is true."
+    }
   },
   "additionalProperties": true
 }

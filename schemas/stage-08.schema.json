@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.local/codex-dev-team/stage-08.schema.json",
   "title": "Stage 08 Sign-off and Deploy Gate",
+  "description": "Stage 8 (PM Sign-off + Deploy) gate. Codex collapses claude's separate stage-07 (sign-off) and stage-08 (deploy) into a single gate. Authored by the pm agent for sign-off OR the orchestrator on the auto-fold path when Stage 7 (QA) passes cleanly with a 1:1 criterion mapping; deploy fields populated by dev-platform after the adapter runs.",
   "type": "object",
   "required": [
     "pm_signoff",
@@ -9,11 +10,26 @@
     "runbook_referenced"
   ],
   "properties": {
-    "pm_signoff": { "type": "boolean" },
-    "deploy_requested": { "type": "boolean" },
-    "runbook_referenced": { "type": "boolean" },
-    "adapter": { "type": "string" },
-    "smoke_test_passed": { "type": "boolean" }
+    "pm_signoff": {
+      "type": "boolean",
+      "description": "PM (or auto-fold) confirms acceptance criteria are met. Deploy cannot proceed without this."
+    },
+    "deploy_requested": {
+      "type": "boolean",
+      "description": "True when the user wants the run to proceed past sign-off into deploy; false marks the run complete at sign-off."
+    },
+    "runbook_referenced": {
+      "type": "boolean",
+      "description": "Confirms pipeline/runbook.md exists with §Rollback and §Health signals. Required for deploy PASS — a missing runbook ESCALATEs at deploy start."
+    },
+    "adapter": {
+      "type": "string",
+      "description": "Selected deploy adapter name from .codex/config.yml (one of docker-compose, kubernetes, terraform, custom)."
+    },
+    "smoke_test_passed": {
+      "type": "boolean",
+      "description": "Adapter-driven smoke test result. Populated by dev-platform after the adapter runs."
+    }
   },
   "additionalProperties": true
 }
