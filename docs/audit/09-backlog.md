@@ -39,7 +39,7 @@ Severity is the cost of NOT porting; effort is implementation cost.
 
 | Claude id | Item | Effort | Severity | Notes |
 |---|---|---|---|---|
-| **B-13** | Programmatic stoplist enforcement on lighter tracks | S–M | High | Codex already has `contextHasStoplistTrigger` for checkpoint suppression. Extend it: build a `scripts/stoplist.js` (port from claude) + wire into `runTrack` in `codex-team.js` to refuse `/quick` `/nano` `/config-only` `/dep-update` on regex match, with a `--force` flag to bypass. |
+| **B-13 [DONE]** | Programmatic stoplist enforcement on lighter tracks | S–M | High | Ported `scripts/stoplist.js` with the regex set unchanged; wired into `runTrack`; `--force` bypasses. The pre-existing `contextHasStoplistTrigger` (used for checkpoint suppression) coexists. |
 | **B-14 [DONE]** | Concurrency test for `approval-derivation.js` | S | Medium | Spawn two parallel processes both writing to the same area gate; assert both approvals land. ~30 LOC. |
 | **B-17 [DONE]** | Replace `codex-team.js` if-chain dispatch with `COMMANDS` object map; export it | S | Medium | Refactor preserved behaviour; added `checkpoint <stage>` subcommand wrapping the existing `applyCheckpointAutoPass`. |
 | **B-21** | Split `.codex/rules/pipeline.md` (589 lines) into core / build / tracks sub-files | M | Medium | Same shape as claude's split. `pipeline.md` becomes a thin index. Update `parity-check.js` (codex side) to scan `pipeline-tracks.md` for stoplist content; update agent prompts that read pipeline.md to also load the sub-files (or trust the index pointer). |

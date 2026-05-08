@@ -2,6 +2,12 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
+const { checkStoplist, explainMatches } = require("./stoplist");
+
+// Tracks that bypass the safety stoplist:
+//   - hotfix: by design (urgent prod bugs follow their own rules)
+//   - full pipeline: doesn't go through runTrack
+const STOPLIST_GUARDED_TRACKS = new Set(["quick", "nano", "config-only", "dep-update"]);
 
 const ROOT = process.cwd();
 const TEMPLATE_DIR = path.join(ROOT, "templates");
@@ -988,11 +994,19 @@ function recordTrackStart(track, description) {
   );
 }
 
-function runTrack(track, description) {
+function runTrack(track, description, options = {}) {
   const normalizedDescription = description.trim();
   if (!normalizedDescription) {
     console.error(`Usage: codex-team ${track} <change description>`);
     return 1;
+  }
+
+  if (STOPLIST_GUARDED_TRACKS.has(track) && !options.force) {
+    const matches = checkStoplist({ description: normalizedDescription, cwd: ROOT });
+    if (matches.length > 0) {
+      console.error(explainMatches(matches));
+      return 2;
+    }
   }
 
   return withTrack(track, () => {
@@ -1312,6 +1326,13 @@ function usage(exitCode = 1) {
   return exitCode;
 }
 
+// Shared --force parsing for the five lighter tracks.
+function dispatchTrack(track, argv) {
+  const force = argv.includes("--force");
+  const description = argv.filter((a) => a !== "--force").join(" ");
+  return runTrack(track, description, { force });
+}
+
 function runCheckpoint(argv) {
   const stageName = argv[0];
   if (!stageName) {
@@ -1355,13 +1376,14 @@ const COMMANDS = {
   "audit-quick": (argv) => runNodeScript("audit.js", ["quick", ...argv]),
   "health-check": (argv) => runNodeScript("audit.js", ["health-check", ...argv]),
 
-  // Pipeline (full + lighter tracks)
+  // Pipeline (full + lighter tracks). Lighter tracks support --force to
+  // bypass the stoplist on a verified false positive.
   pipeline: (argv) => runPipeline(argv.join(" ")),
-  quick: (argv) => runTrack("quick", argv.join(" ")),
-  nano: (argv) => runTrack("nano", argv.join(" ")),
-  "config-only": (argv) => runTrack("config-only", argv.join(" ")),
-  "dep-update": (argv) => runTrack("dep-update", argv.join(" ")),
-  hotfix: (argv) => runTrack("hotfix", argv.join(" ")),
+  quick: (argv) => dispatchTrack("quick", argv),
+  nano: (argv) => dispatchTrack("nano", argv),
+  "config-only": (argv) => dispatchTrack("config-only", argv),
+  "dep-update": (argv) => dispatchTrack("dep-update", argv),
+  hotfix: (argv) => dispatchTrack("hotfix", argv),
 
   // Pipeline operations
   "pipeline:scaffold": (argv) => scaffoldPipeline(argv.join(" ")),
